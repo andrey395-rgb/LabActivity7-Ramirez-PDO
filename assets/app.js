@@ -15,6 +15,12 @@ document.querySelectorAll('form').forEach(function (form) {
     });
 
     form.addEventListener('submit', function (event) {
+        // Ask before destructive actions (forms with data-confirm, e.g. delete)
+        if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) {
+            event.preventDefault();
+            return;
+        }
+
         // Trim text fields so whitespace-only input counts as empty (passwords are left as typed)
         form.querySelectorAll('input[type="text"], input[type="email"], textarea').forEach(function (field) {
             field.value = field.value.trim();

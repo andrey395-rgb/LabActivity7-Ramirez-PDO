@@ -17,9 +17,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = validate_post($values);
 
     if (!$errors) {
-        $stmt = $pdo->prepare('INSERT INTO posts (user_id, title, body) VALUES (?, ?, ?)');
-        $stmt->execute([current_user_id(), $values['title'], $values['body']]);
-        $postId = (int) $pdo->lastInsertId();
+        try {
+            $pdo->beginTransaction();
+
+            $stmt = $pdo->prepare('INSERT INTO posts (user_id, title, body) VALUES (?, ?, ?)');
+            $stmt->execute([current_user_id(), $values['title'], $values['body']]);
+            $postId = (int) $pdo->lastInsertId();
+
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
 
         set_flash('success', 'Your post has been published.');
         redirect('index.php#post-' . $postId);

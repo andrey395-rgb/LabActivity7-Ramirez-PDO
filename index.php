@@ -7,22 +7,26 @@ require_auth();
 $userId = current_user_id();
 
 // All posts from all users, most recent first
-$posts = $pdo->query(
+$stmt = $pdo->prepare(
     'SELECT p.id, p.user_id, p.title, p.body, p.created_at, p.updated_at, u.name AS author
      FROM posts p
      JOIN users u ON u.id = p.user_id
      ORDER BY p.created_at DESC, p.id DESC'
-)->fetchAll();
+);
+$stmt->execute();
+$posts = $stmt->fetchAll();
 
 // All comments in one query, grouped by post (oldest first under each post)
 $commentsByPost = [];
 if ($posts) {
-    $comments = $pdo->query(
+    $stmt = $pdo->prepare(
         'SELECT c.id, c.post_id, c.user_id, c.body, c.created_at, c.updated_at, u.name AS author
          FROM comments c
          JOIN users u ON u.id = c.user_id
          ORDER BY c.created_at ASC, c.id ASC'
-    )->fetchAll();
+    );
+    $stmt->execute();
+    $comments = $stmt->fetchAll();
 
     foreach ($comments as $comment) {
         $commentsByPost[$comment['post_id']][] = $comment;
@@ -72,7 +76,15 @@ require __DIR__ . '/partials/header.php';
                 </p>
             </div>
             <?php if ($isOwner): ?>
-                <a class="btn btn-small btn-secondary" href="post_edit.php?id=<?= (int) $post['id'] ?>">Edit</a>
+                <div class="post-actions">
+                    <a class="btn btn-small btn-secondary" href="post_edit.php?id=<?= (int) $post['id'] ?>">Edit</a>
+                    <form method="post" action="post_delete.php" class="inline-form"
+                          data-confirm="Delete this post? Its comments will be deleted too.">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="id" value="<?= (int) $post['id'] ?>">
+                        <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                    </form>
+                </div>
             <?php endif; ?>
         </header>
 
@@ -95,7 +107,15 @@ require __DIR__ . '/partials/header.php';
                                     <?php endif; ?>
                                 </p>
                                 <?php if ($isCommentOwner): ?>
-                                    <a class="text-link" href="comment_edit.php?id=<?= (int) $comment['id'] ?>">Edit</a>
+                                    <div class="comment-actions">
+                                        <a class="text-link" href="comment_edit.php?id=<?= (int) $comment['id'] ?>">Edit</a>
+                                        <form method="post" action="comment_delete.php" class="inline-form"
+                                              data-confirm="Delete this comment?">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="id" value="<?= (int) $comment['id'] ?>">
+                                            <button type="submit" class="link-button text-link danger-link">Delete</button>
+                                        </form>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                             <div class="comment-body"><?= nl2br(e($comment['body'])) ?></div>

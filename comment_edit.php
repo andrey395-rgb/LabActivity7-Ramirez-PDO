@@ -40,9 +40,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Nothing changed, so don't mark the comment as edited
             set_flash('info', 'No changes were made.');
         } else {
-            // user_id in the WHERE clause guarantees only the owner's row is updated
-            $stmt = $pdo->prepare('UPDATE comments SET body = ?, updated_at = NOW() WHERE id = ? AND user_id = ?');
-            $stmt->execute([$body, $commentId, current_user_id()]);
+            try {
+                $pdo->beginTransaction();
+
+                // user_id in the WHERE clause guarantees only the owner's row is updated
+                $stmt = $pdo->prepare('UPDATE comments SET body = ?, updated_at = NOW() WHERE id = ? AND user_id = ?');
+                $stmt->execute([$body, $commentId, current_user_id()]);
+
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $e;
+            }
             set_flash('success', 'Your comment has been updated.');
         }
         redirect('index.php#comment-' . $commentId);

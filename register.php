@@ -55,9 +55,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errors) {
         try {
+            $pdo->beginTransaction();
+
             $stmt = $pdo->prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)');
             $stmt->execute([$old['name'], $old['email'], password_hash($password, PASSWORD_DEFAULT)]);
+
+            $pdo->commit();
         } catch (PDOException $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
             // 1062 = duplicate entry (UNIQUE email), e.g. two sign-ups at the same moment
             if (($e->errorInfo[1] ?? null) == 1062) {
                 $errors['email'] = 'That email is already registered.';

@@ -181,6 +181,13 @@ textarea:focus {
 }
 .btn-secondary:hover { background: var(--bg); }
 
+.btn-danger {
+    color: var(--danger);
+    background: var(--surface);
+    border-color: #f5c2c0;
+}
+.btn-danger:hover { color: #fff; background: var(--danger); border-color: var(--danger); }
+
 .btn-small { padding: 6px 12px; font-size: .9rem; }
 .btn-block { width: 100%; }
 
@@ -261,7 +268,17 @@ textarea:focus {
 
 .comment-body { margin-top: 4px; overflow-wrap: anywhere; }
 
+.post-actions,
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.comment-actions { gap: 12px; }
+
 .text-link { font-size: .85rem; font-weight: 600; }
+.danger-link { color: var(--danger); }
 
 .comment-form { margin-top: 8px; }
 .comment-form textarea { margin-bottom: 8px; }

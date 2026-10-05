@@ -31,8 +31,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($user && password_verify($password, $user['password'])) {
             // Upgrade the hash if PHP's default algorithm/cost has changed
             if (password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
-                $stmt = $pdo->prepare('UPDATE users SET password = ? WHERE id = ?');
-                $stmt->execute([password_hash($password, PASSWORD_DEFAULT), $user['id']]);
+                try {
+                    $pdo->beginTransaction();
+
+                    $stmt = $pdo->prepare('UPDATE users SET password = ? WHERE id = ?');
+                    $stmt->execute([password_hash($password, PASSWORD_DEFAULT), $user['id']]);
+
+                    $pdo->commit();
+                } catch (Throwable $e) {
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+                    throw $e;
+                }
             }
 
             login_user($user);

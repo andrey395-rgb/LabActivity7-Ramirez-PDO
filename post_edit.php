@@ -38,9 +38,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Nothing changed, so don't mark the post as edited
             set_flash('info', 'No changes were made.');
         } else {
-            // user_id in the WHERE clause guarantees only the owner's row is updated
-            $stmt = $pdo->prepare('UPDATE posts SET title = ?, body = ?, updated_at = NOW() WHERE id = ? AND user_id = ?');
-            $stmt->execute([$values['title'], $values['body'], $postId, current_user_id()]);
+            try {
+                $pdo->beginTransaction();
+
+                // user_id in the WHERE clause guarantees only the owner's row is updated
+                $stmt = $pdo->prepare('UPDATE posts SET title = ?, body = ?, updated_at = NOW() WHERE id = ? AND user_id = ?');
+                $stmt->execute([$values['title'], $values['body'], $postId, current_user_id()]);
+
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $e;
+            }
             set_flash('success', 'Your post has been updated.');
         }
         redirect('index.php#post-' . $postId);

@@ -28,9 +28,33 @@ $body = post_string('body');
 $error = validate_comment($body);
 
 if (!$error) {
-    $stmt = $pdo->prepare('INSERT INTO comments (post_id, user_id, body) VALUES (?, ?, ?)');
-    $stmt->execute([$postId, current_user_id(), $body]);
-    $commentId = (int) $pdo->lastInsertId();
+    try {
+        $pdo->beginTransaction();
+
+        // Lock the post row so it can't be deleted between this check and the insert
+        $stmt = $pdo->prepare('SELECT id FROM posts WHERE id = ? FOR UPDATE');
+        $stmt->execute([$postId]);
+        $postStillExists = (bool) $stmt->fetch();
+
+        if ($postStillExists) {
+            $stmt = $pdo->prepare('INSERT INTO comments (post_id, user_id, body) VALUES (?, ?, ?)');
+            $stmt->execute([$postId, current_user_id(), $body]);
+            $commentId = (int) $pdo->lastInsertId();
+
+            $pdo->commit();
+        } else {
+            $pdo->rollBack();
+        }
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+
+    if (!$postStillExists) {
+        abort(404, 'Post not found. It may have been deleted.');
+    }
 
     set_flash('success', 'Your comment has been added.');
     redirect('index.php#comment-' . $commentId);
