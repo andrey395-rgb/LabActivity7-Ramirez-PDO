@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('index.php');
 }
 
-require_auth();
+require_auth($pdo);
 verify_csrf();
 
 // Clear the session data and its cookie

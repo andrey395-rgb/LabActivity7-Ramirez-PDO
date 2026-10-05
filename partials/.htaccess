@@ -1,0 +1,2 @@
+# Partials are only meant to be required by the pages, not opened in the browser
+Require all denied

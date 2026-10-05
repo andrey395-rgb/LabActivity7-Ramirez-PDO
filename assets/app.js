@@ -1,6 +1,13 @@
 // Client-side validation that complements the HTML5 attributes
 // (required, minlength, maxlength, type="email"). The server validates everything again.
 
+// Re-enable submit buttons when the page is restored with the browser's Back button
+window.addEventListener('pageshow', function () {
+    document.querySelectorAll('button[type="submit"]:disabled').forEach(function (button) {
+        button.disabled = false;
+    });
+});
+
 document.querySelectorAll('form').forEach(function (form) {
     // "Confirm password" fields must match the field named in data-match
     form.querySelectorAll('[data-match]').forEach(function (confirmField) {

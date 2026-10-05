@@ -2,7 +2,7 @@
 require __DIR__ . '/db.php';
 require __DIR__ . '/auth.php';
 
-require_auth();
+require_auth($pdo);
 
 // Deleting changes data, so it's only allowed through the POST form on the feed
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

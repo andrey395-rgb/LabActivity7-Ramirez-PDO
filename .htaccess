@@ -1,0 +1,7 @@
+# No directory listings (e.g. /assets/, /partials/)
+Options -Indexes
+
+# Config, helper and schema files are only meant to be required by PHP, not opened in the browser
+<FilesMatch "^(db|auth|helpers)\.php$|\.sql$">
+    Require all denied
+</FilesMatch>

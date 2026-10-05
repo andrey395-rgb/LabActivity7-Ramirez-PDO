@@ -30,11 +30,10 @@ function require_guest(): void
     }
 }
 
-// AUTHENTICATED pages: guests go to the login page (requires db.php to be loaded first)
-function require_auth(): void
+// AUTHENTICATED pages: guests go to the login page.
+// Receives the PDO instance from the page, which imports it with: require __DIR__ . '/db.php';
+function require_auth(PDO $pdo): void
 {
-    global $pdo;
-
     if (is_logged_in()) {
         // Make sure the account still exists (it may have been deleted)
         $stmt = $pdo->prepare('SELECT name FROM users WHERE id = ?');

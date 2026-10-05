@@ -2,7 +2,7 @@
 require __DIR__ . '/db.php';
 require __DIR__ . '/auth.php';
 
-require_auth();
+require_auth($pdo);
 
 $errors = [];
 $values = ['title' => '', 'body' => ''];

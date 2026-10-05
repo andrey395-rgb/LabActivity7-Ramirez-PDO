@@ -24,11 +24,12 @@ function redirect(string $path): void
     exit;
 }
 
-// Read a trimmed string from $_POST (ignores arrays and other non-strings)
+// Read a trimmed string from $_POST (ignores arrays and other non-strings).
+// Line endings are normalized to \n so lengths match what the browser counted.
 function post_string(string $key): string
 {
     $value = $_POST[$key] ?? '';
-    return is_string($value) ? trim($value) : '';
+    return is_string($value) ? trim(str_replace("\r\n", "\n", $value)) : '';
 }
 
 // Read a raw string from $_POST without trimming (used for passwords)
