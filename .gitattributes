@@ -1,0 +1,2 @@
+# Tell GitHub's language detection that .php files are PHP (not Hack)
+*.php linguist-language=PHP
